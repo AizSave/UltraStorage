@@ -1,0 +1,43 @@
+[object]
+woodvault=Wood Vault
+coppervault=Copper Vault
+ironvault=Iron Vault
+goldvault=Gold Vault
+demonicvault=Demonic Vault
+ivyvault=Ivy Vault
+quartzvault=Quartz Vault
+tungstenvault=Tungsten Vault
+glacialvault=Glacial Vault
+myceliumvault=Mycelium Vault
+ancientvault=Ancient Vault
+
+[ui]
+storageempty=No items
+
+searchmodtip=Search Mod / Vanilla
+allitemsfilter=All Items
+matitemsfilter=Material Items
+weapon-meleeitemsfilter=Melee Weapons
+weapon-rangeitemsfilter=Range Weapons
+weapon-magicitemsfilter=Magic Weapons
+weapon-summonitemsfilter=Summon Weapons
+weapon-otheritemsfilter=Other Weapons
+toolitemsfilter=Tool Items
+armoritemsfilter=Armor Items
+cosmeticitemsfilter=Cosmetic Items
+trinketitemsfilter=Trinket Items
+mountitemsfilter=Mount Items
+arrowitemsfilter=Arrow Items
+bulletitemsfilter=Bullet Items
+seeditemsfilter=Seed Items
+baititemsfilter=Bait Items
+fooditemsfilter=Food Items
+consumableitemsfilter=Consumable Items
+questitemsfilter=Quest Items
+miscitemsfilter=Misc Items
+objectitemsfilter=Object Items
+tileitemsfilter=Tile Items
+vinylitemsfilter=Vinyl Items
+
+[message]
+cannotopenifitsopen=Cannot open because it is currently in use by another player

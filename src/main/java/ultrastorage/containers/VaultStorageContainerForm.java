@@ -119,15 +119,11 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         super(client, container);
         this.addItemSlot = new FormContainerAddItemSlot(client, container, this, container.INVENTORY_START, this.inventoryForm.getWidth() - 60, this.inventoryForm.getHeight() - 60);
         this.inventoryForm.addComponent(this.addItemSlot);
-        OEInventory oeInventory = container.oeInventory;
+        OEInventory oeInventory = container.getOEInventory();
         FontOptions labelOptions = new FontOptions(20);
         this.label = this.inventoryForm.addComponent(new FormLabelEdit("", labelOptions, Settings.UI.activeTextColor, 4, 4, this.inventoryForm.getWidth() - 8, 50), -1000);
-        this.label.onMouseChangedTyping((e) -> {
-            this.runEditUpdate();
-        });
-        this.label.onSubmit((e) -> {
-            this.runEditUpdate();
-        });
+        this.label.onMouseChangedTyping((e) -> this.runEditUpdate());
+        this.label.onSubmit((e) -> this.runEditUpdate());
         this.label.allowCaretSetTyping = oeInventory.canSetInventoryName();
         this.label.allowItemAppend = true;
         this.label.setParsers(getParsers(labelOptions));
@@ -183,7 +179,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
                 return tooltips;
             }
         }
-        actionButton = this.inventoryForm.addComponent(new TransferAllButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.container_loot_all, new GameMessage[0])).mirrorY();
+        actionButton = this.inventoryForm.addComponent(new TransferAllButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.container_loot_all)).mirrorY();
         actionButton.onClicked((e) -> {
             container.transferAll.runAndSend();
             this.updateFilter();
@@ -192,7 +188,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
 
 
         // Quickstack In
-        actionButton = this.inventoryForm.addComponent(new FormContentIconButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.inventory_quickstack_in, new GameMessage[]{new LocalMessage("ui", "inventoryrestock")}));
+        actionButton = this.inventoryForm.addComponent(new FormContentIconButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.inventory_quickstack_in, new LocalMessage("ui", "inventoryrestock")));
         actionButton.onClicked((e) -> {
             container.restockButton.runAndSend();
             this.updateFilter();
@@ -208,7 +204,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
             int upgradeButtonWidth = 200;
             final InventoryItem upgradeItem = new InventoryItem(nextVaultObject.getObjectItem());
             LocalMessage upgradeMessage = new LocalMessage("ui", "upgradeto", "upgrade", TypeParsers.getItemParseString(upgradeItem));
-            this.upgradeButton = (FormFairTypeButton)this.inventoryForm.addComponent(new FormFairTypeButton(upgradeMessage, iconFlow.next() - upgradeButtonWidth, 4, 200, FormInputSize.SIZE_24, ButtonColor.GREEN) {
+            this.upgradeButton = this.inventoryForm.addComponent(new FormFairTypeButton(upgradeMessage, iconFlow.next() - upgradeButtonWidth, 4, 200, FormInputSize.SIZE_24, ButtonColor.GREEN) {
                 protected void addTooltips(PlayerMob perspective) {
                     super.addTooltips(perspective);
                     ListGameTooltips tooltips = new ListGameTooltips();
@@ -270,15 +266,11 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         this.searchFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 86, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 106, this.inventoryForm.getHeight() - 20));
         this.searchFilter.placeHolder = new LocalMessage("ui", "searchtip");
         this.searchFilter.rightClickToClear = true;
-        this.searchFilter.onChange((event) -> {
-            this.updateFilter();
-        });
+        this.searchFilter.onChange((event) -> this.updateFilter());
         this.searchModFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 46, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 106, this.inventoryForm.getHeight() - 20));
         this.searchModFilter.placeHolder = new LocalMessage("ui", "searchmodtip");
         this.searchModFilter.rightClickToClear = true;
-        this.searchModFilter.onChange((event) -> {
-            this.updateFilter();
-        });
+        this.searchModFilter.onChange((event) -> this.updateFilter());
 
         this.inventoryForm.setWidth(width + addedWidthForButtonFilters);
 
@@ -419,7 +411,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
     }
 
     private void runEditUpdate() {
-        OEInventory oeInventory = this.container.oeInventory;
+        OEInventory oeInventory = this.container.getOEInventory();
         if (oeInventory.canSetInventoryName()) {
             if (this.label.isTyping()) {
                 this.edit.setIcon(Settings.UI.container_rename_save);

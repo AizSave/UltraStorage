@@ -11,6 +11,9 @@ glacialvault=Glacial Vault
 myceliumvault=Mycelium Vault
 ancientvault=Ancient Vault
 
+[item]
+anychest=Any Chest
+
 [ui]
 storageempty=No items
 

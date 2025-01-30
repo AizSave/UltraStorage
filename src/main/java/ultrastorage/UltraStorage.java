@@ -41,11 +41,7 @@ public class UltraStorage {
     public void init() {
 
         // Containers
-        ULTRA_STORAGE_CONTAINER = ContainerRegistry.registerOEContainer((client, uniqueSeed, oe, content) -> {
-            return new VaultStorageContainerForm(client, new VaultStorageContainer(client.getClient(), uniqueSeed, (OEInventory) oe, new PacketReader(content)));
-        }, (client, uniqueSeed, oe, content, serverObject) -> {
-            return new VaultStorageContainer(client, uniqueSeed, (OEInventory) oe, new PacketReader(content));
-        });
+        ULTRA_STORAGE_CONTAINER = ContainerRegistry.registerOEContainer((client, uniqueSeed, oe, content) -> new VaultStorageContainerForm(client, new VaultStorageContainer(client.getClient(), uniqueSeed, (OEInventory) oe, new PacketReader(content))), (client, uniqueSeed, oe, content, serverObject) -> new VaultStorageContainer(client, uniqueSeed, (OEInventory) oe, new PacketReader(content)));
 
         // Ultra Chests
         VaultObject.register("woodvault", new Color(97, 39, 3), null, 80, true);

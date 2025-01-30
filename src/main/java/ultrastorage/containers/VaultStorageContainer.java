@@ -49,7 +49,7 @@ public class VaultStorageContainer extends SettlementDependantContainer {
     public EmptyCustomAction sortAction;
     public final EmptyCustomAction upgradeUltraChest;
 
-    private final LinkedHashSet<Inventory> nearbyInventories = new LinkedHashSet();
+    private final LinkedHashSet<Inventory> nearbyInventories = new LinkedHashSet<>();
 
     public VaultStorageContainer(final NetworkClient client, int uniqueSeed, final OEInventory oeInventory, PacketReader reader) {
         super(client, uniqueSeed);
@@ -103,7 +103,7 @@ public class VaultStorageContainer extends SettlementDependantContainer {
         this.quickStackButton = this.registerAction(new EmptyCustomAction() {
             protected void run() {
                 if (oeInventory.canQuickStackInventory()) {
-                    ArrayList<InventoryRange> targets = new ArrayList(Collections.singleton(VaultStorageContainer.this.getOEInventoryRange()));
+                    ArrayList<InventoryRange> targets = new ArrayList<>(Collections.singleton(VaultStorageContainer.this.getOEInventoryRange()));
                     VaultStorageContainer.this.quickStackToInventories(targets, client.playerMob.getInv().main);
                 }
 
@@ -120,7 +120,7 @@ public class VaultStorageContainer extends SettlementDependantContainer {
         });
         this.restockButton = this.registerAction(new EmptyCustomAction() {
             protected void run() {
-                ArrayList<InventoryRange> targets = new ArrayList(Collections.singleton(VaultStorageContainer.this.getOEInventoryRange()));
+                ArrayList<InventoryRange> targets = new ArrayList<>(Collections.singleton(VaultStorageContainer.this.getOEInventoryRange()));
                 VaultStorageContainer.this.restockFromInventories(targets, client.playerMob.getInv().main);
             }
         });
@@ -173,7 +173,7 @@ public class VaultStorageContainer extends SettlementDependantContainer {
     }
 
     private boolean useNearbyInventories() {
-        return this.client.isServer() ? this.client.craftingUsesNearbyInventories : (Boolean) Settings.craftingUseNearby.get();
+        return this.client.isServer() ? this.client.craftingUsesNearbyInventories : Settings.craftingUseNearby.get();
     }
 
     public Collection<Inventory> getCraftInventories() {
@@ -251,6 +251,6 @@ public class VaultStorageContainer extends SettlementDependantContainer {
     }
 
     public static void openAndSendContainer(int containerID, ServerClient client, Level level, int tileX, int tileY) {
-        openAndSendContainer(containerID, client, level, tileX, tileY, (Packet) null);
+        openAndSendContainer(containerID, client, level, tileX, tileY, null);
     }
 }

@@ -1,14 +1,11 @@
 package ultrastorage.objects;
 
-import necesse.engine.localization.Localization;
 import necesse.engine.network.packet.PacketPlaceObject;
 import necesse.engine.network.server.ServerClient;
 import necesse.engine.registries.ObjectRegistry;
 import necesse.entity.levelEvent.SmokePuffCloudLevelEvent;
 import necesse.entity.mobs.PlayerMob;
 import necesse.entity.objectEntity.InventoryObjectEntity;
-import necesse.entity.objectEntity.ObjectEntity;
-import necesse.entity.objectEntity.interfaces.OEUsers;
 import necesse.entity.pickup.ItemPickupEntity;
 import necesse.inventory.Inventory;
 import necesse.inventory.item.toolItem.ToolType;
@@ -30,19 +27,14 @@ public class VaultObject extends InventoryObject {
     public int position;
 
     private VaultObject(String stringId, Color color, Ingredient ingredient, String textureName, int slots, boolean isWood) {
-        super(textureName, slots + 1, new Rectangle(4, 4, 24, 24), isWood ? ToolType.ALL : ToolType.PICKAXE, color);
+        super(textureName, slots, new Rectangle(4, 4, 24, 24), isWood ? ToolType.ALL : ToolType.PICKAXE, color);
         this.stringId = stringId;
         this.ingredient = ingredient;
     }
 
     public void interact(Level level, int x, int y, PlayerMob player) {
         if (level.isServer()) {
-            ObjectEntity ent = level.entityManager.getObjectEntity(x, y);
-            if (ent != null && ent.implementsOEUsers() && ((OEUsers) ent).isInUse()) {
-                player.getServerClient().sendChatMessage(Localization.translate("message", "cannotopenifitsopen"));
-            } else {
-                VaultStorageContainer.openAndSendContainer(UltraStorage.ULTRA_STORAGE_CONTAINER, player.getServerClient(), level, x, y);
-            }
+            VaultStorageContainer.openAndSendContainer(UltraStorage.ULTRA_STORAGE_CONTAINER, player.getServerClient(), level, x, y);
         }
     }
 

@@ -20,6 +20,7 @@ import necesse.inventory.container.customAction.EmptyCustomAction;
 import necesse.inventory.container.customAction.IntCustomAction;
 import necesse.inventory.container.customAction.PointCustomAction;
 import necesse.inventory.container.customAction.StringCustomAction;
+import necesse.inventory.container.object.OEInventoryContainer;
 import necesse.inventory.container.settlement.SettlementContainerObjectStatusManager;
 import necesse.inventory.container.settlement.SettlementDependantContainer;
 import necesse.inventory.container.slots.ContainerSlot;
@@ -36,17 +37,14 @@ public class VaultStorageContainer extends SettlementDependantContainer {
     public EmptyCustomAction quickStackButton;
     public EmptyCustomAction transferAll;
     public EmptyCustomAction restockButton;
+    public EmptyCustomAction lootButton;
+    public EmptyCustomAction sortButton;
     public final OEInventory oeInventory;
     public final ObjectEntity objectEntity;
     public final OEUsers oeUsers;
     public int INVENTORY_START = -1;
     public int INVENTORY_END = -1;
     public SettlementContainerObjectStatusManager settlementObjectManager;
-
-    public PointCustomAction moveItem;
-    public IntCustomAction lootSlot;
-
-    public EmptyCustomAction sortAction;
     public final EmptyCustomAction upgradeUltraChest;
 
     private final LinkedHashSet<Inventory> nearbyInventories = new LinkedHashSet<>();
@@ -97,7 +95,6 @@ public class VaultStorageContainer extends SettlementDependantContainer {
                         client.getServerClient().getServer().network.sendToClientsWithEntity(new PacketOEInventoryNameUpdate(oeInventory, value), VaultStorageContainer.this.objectEntity);
                     }
                 }
-
             }
         });
         this.quickStackButton = this.registerAction(new EmptyCustomAction() {
@@ -106,12 +103,11 @@ public class VaultStorageContainer extends SettlementDependantContainer {
                     ArrayList<InventoryRange> targets = new ArrayList<>(Collections.singleton(VaultStorageContainer.this.getOEInventoryRange()));
                     VaultStorageContainer.this.quickStackToInventories(targets, client.playerMob.getInv().main);
                 }
-
             }
         });
         this.transferAll = this.registerAction(new EmptyCustomAction() {
             protected void run() {
-                for (int i = VaultStorageContainer.this.CLIENT_INVENTORY_START; i <= VaultStorageContainer.this.CLIENT_INVENTORY_END; ++i) {
+                for(int i = VaultStorageContainer.this.CLIENT_INVENTORY_START; i <= VaultStorageContainer.this.CLIENT_INVENTORY_END; ++i) {
                     if (!VaultStorageContainer.this.getSlot(i).isItemLocked()) {
                         VaultStorageContainer.this.transferToSlots(VaultStorageContainer.this.getSlot(i), VaultStorageContainer.this.INVENTORY_START, VaultStorageContainer.this.INVENTORY_END, "transferall");
                     }
@@ -124,27 +120,21 @@ public class VaultStorageContainer extends SettlementDependantContainer {
                 VaultStorageContainer.this.restockFromInventories(targets, client.playerMob.getInv().main);
             }
         });
-
-        this.lootSlot = this.registerAction(new IntCustomAction() {
-            protected void run(int i) {
-                if (!VaultStorageContainer.this.getSlot(i).isItemLocked()) {
-                    VaultStorageContainer.this.transferToSlots(VaultStorageContainer.this.getSlot(i), Arrays.asList(new SlotIndexRange(VaultStorageContainer.this.CLIENT_HOTBAR_START, VaultStorageContainer.this.CLIENT_HOTBAR_END), new SlotIndexRange(VaultStorageContainer.this.CLIENT_INVENTORY_START, VaultStorageContainer.this.CLIENT_INVENTORY_END)), "lootall");
+        this.lootButton = this.registerAction(new EmptyCustomAction() {
+            protected void run() {
+                for(int i = VaultStorageContainer.this.INVENTORY_START; i <= VaultStorageContainer.this.INVENTORY_END; ++i) {
+                    if (!VaultStorageContainer.this.getSlot(i).isItemLocked()) {
+                        VaultStorageContainer.this.transferToSlots(VaultStorageContainer.this.getSlot(i), Arrays.asList(new SlotIndexRange(VaultStorageContainer.this.CLIENT_HOTBAR_START, VaultStorageContainer.this.CLIENT_HOTBAR_END), new SlotIndexRange(VaultStorageContainer.this.CLIENT_INVENTORY_START, VaultStorageContainer.this.CLIENT_INVENTORY_END)), "lootall");
+                    }
                 }
+
             }
         });
-
-        this.moveItem = this.registerAction(new PointCustomAction() {
-            protected void run(int from, int to) {
-                VaultStorageContainer.this.getSlot(to).setItem(VaultStorageContainer.this.getSlot(from).getItem());
-                VaultStorageContainer.this.getSlot(from).setItem(null);
-            }
-        });
-
-        this.sortAction = this.registerAction(new EmptyCustomAction() {
+        this.sortButton = (EmptyCustomAction)this.registerAction(new EmptyCustomAction() {
             protected void run() {
                 if (oeInventory.canSortInventory()) {
                     InventoryRange range = VaultStorageContainer.this.getOEInventoryRange();
-                    range.inventory.sortItems(client.playerMob.getLevel(), client.playerMob, range.startSlot + 1, range.endSlot);
+                    range.inventory.sortItems(client.playerMob.getLevel(), client.playerMob, range.startSlot, range.endSlot);
                 }
 
             }
@@ -182,7 +172,7 @@ public class VaultStorageContainer extends SettlementDependantContainer {
 
     public ArrayList<ContainerSlot> getAllSlots() {
         ArrayList<ContainerSlot> containerSlots = new ArrayList<>();
-        for (int i = VaultStorageContainer.this.INVENTORY_START + 1; i <= VaultStorageContainer.this.INVENTORY_END; ++i) {
+        for (int i = VaultStorageContainer.this.INVENTORY_START; i <= VaultStorageContainer.this.INVENTORY_END; ++i) {
             containerSlots.add(VaultStorageContainer.this.getSlot(i));
         }
         return containerSlots;

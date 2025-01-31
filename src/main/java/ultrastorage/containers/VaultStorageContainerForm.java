@@ -1,17 +1,9 @@
 package ultrastorage.containers;
 
-import necesse.gfx.GameBackground;
-import necesse.gfx.fairType.FairType;
-import necesse.gfx.gameTooltips.*;
-import necesse.inventory.recipe.CanCraft;
-import necesse.inventory.recipe.Ingredient;
-import necesse.inventory.recipe.Recipe;
-import ultrastorage.UltraStorage;
 import necesse.engine.Settings;
 import necesse.engine.gameLoop.tickManager.TickManager;
 import necesse.engine.input.Control;
 import necesse.engine.input.InputEvent;
-import necesse.engine.input.InputID;
 import necesse.engine.localization.Localization;
 import necesse.engine.localization.message.GameMessage;
 import necesse.engine.localization.message.LocalMessage;
@@ -23,16 +15,20 @@ import necesse.engine.window.GameWindow;
 import necesse.engine.window.WindowManager;
 import necesse.entity.mobs.PlayerMob;
 import necesse.entity.objectEntity.interfaces.OEInventory;
+import necesse.gfx.GameBackground;
 import necesse.gfx.GameColor;
+import necesse.gfx.fairType.FairType;
 import necesse.gfx.fairType.TypeParsers;
 import necesse.gfx.fairType.parsers.TypeParser;
 import necesse.gfx.forms.ContainerComponent;
 import necesse.gfx.forms.Form;
 import necesse.gfx.forms.components.*;
+import necesse.gfx.forms.components.containerSlot.FormContainerSlot;
 import necesse.gfx.forms.components.localComponents.FormLocalLabel;
 import necesse.gfx.forms.presets.containerComponent.ContainerFormSwitcher;
 import necesse.gfx.forms.presets.containerComponent.settlement.SettlementObjectStatusFormManager;
 import necesse.gfx.gameFont.FontOptions;
+import necesse.gfx.gameTooltips.*;
 import necesse.gfx.ui.ButtonColor;
 import necesse.gfx.ui.ButtonTexture;
 import necesse.inventory.InventoryItem;
@@ -44,10 +40,15 @@ import necesse.inventory.item.placeableItem.StonePlaceableItem;
 import necesse.inventory.item.placeableItem.consumableItem.ConsumableItem;
 import necesse.inventory.item.placeableItem.objectItem.ObjectItem;
 import necesse.inventory.item.placeableItem.tileItem.TileItem;
+import necesse.inventory.recipe.CanCraft;
+import necesse.inventory.recipe.Ingredient;
+import necesse.inventory.recipe.Recipe;
+import ultrastorage.UltraStorage;
 import ultrastorage.objects.VaultObject;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,12 +65,11 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
     public SettlementObjectStatusFormManager settlementObjectFormManager;
     public FormLabelEdit label;
     public FormContentIconButton edit;
-    public FormSlotList slots;
+    public FormContentBox slotsBox;
+    public FormContainerSlot[] slots;
     public LocalMessage renameTip;
 
     public FormLocalLabel labelSlots;
-
-    public FormContainerAddItemSlot addItemSlot;
 
     public FormTextInput searchFilter;
     public FormTextInput searchModFilter;
@@ -109,7 +109,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
 
     public static final int buttonsPerColumn = 8;
     public static int maxColumns = (int) Math.ceil((float) filterButtons.length / buttonsPerColumn) - 1;
-    public static int addedWidthForButtonFilters = maxColumns * 40 + 40 + 12;
+    public static int addedWidthForButtonFilters = maxColumns * 40 + 40 + 10;
 
     public static TypeParser<?>[] getParsers(FontOptions fontOptions) {
         return new TypeParser[]{TypeParsers.GAME_COLOR, TypeParsers.REMOVE_URL, TypeParsers.URL_OPEN, TypeParsers.ItemIcon(fontOptions.getSize()), TypeParsers.MobIcon(fontOptions.getSize()), TypeParsers.InputIcon(fontOptions)};
@@ -117,8 +117,6 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
 
     public VaultStorageContainerForm(Client client, VaultStorageContainer container) {
         super(client, container);
-        this.addItemSlot = new FormContainerAddItemSlot(client, container, this, container.INVENTORY_START, this.inventoryForm.getWidth() - 60, this.inventoryForm.getHeight() - 60);
-        this.inventoryForm.addComponent(this.addItemSlot);
         OEInventory oeInventory = container.getOEInventory();
         FontOptions labelOptions = new FontOptions(20);
         this.label = this.inventoryForm.addComponent(new FormLabelEdit("", labelOptions, Settings.UI.activeTextColor, 4, 4, this.inventoryForm.getWidth() - 8, 50), -1000);
@@ -128,7 +126,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         this.label.allowItemAppend = true;
         this.label.setParsers(getParsers(labelOptions));
         this.label.setText(oeInventory.getInventoryName().translate());
-        FormFlow iconFlow = new FormFlow(this.inventoryForm.getWidth() - 4);
+        FormFlow iconFlow = new FormFlow(this.inventoryForm.getWidth() - 4 - 20);
         this.renameTip = new LocalMessage("ui", "renamebutton");
         if (oeInventory.canSetInventoryName()) {
             this.edit = this.inventoryForm.addComponent(new FormContentIconButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.container_rename, this.renameTip));
@@ -195,6 +193,19 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         });
         actionButton.setCooldown(500);
 
+        // Loot All
+        actionButton = this.inventoryForm.addComponent(new FormContentIconButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.container_loot_all, new GameMessage[]{new LocalMessage("ui", "inventorylootall")}));
+        actionButton.onClicked((e) -> {
+            container.lootButton.runAndSend();
+        });
+
+        // Sort
+        actionButton = this.inventoryForm.addComponent(new FormContentIconButton(iconFlow.next(-26) - 24, 4, FormInputSize.SIZE_24, ButtonColor.BASE, Settings.UI.inventory_sort, new GameMessage[]{new LocalMessage("ui", "inventorysort")}));
+        actionButton.onClicked((e) -> {
+            container.sortButton.runAndSend();
+        });
+        actionButton.setCooldown(500);
+
         this.settlementObjectFormManager = container.settlementObjectManager.getFormManager(this, this.inventoryForm, client);
         this.settlementObjectFormManager.addConfigButtonRow(this.inventoryForm, iconFlow, 4, -1);
 
@@ -234,43 +245,22 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
 
         this.label.setWidth(iconFlow.next() - 8);
 
-        this.inventoryForm.addComponent(this.slots = new FormSlotList(6, 34, this.inventoryForm.getWidth() - 12, 260 - addedHeightForSearch, client, container) {
+        this.inventoryForm.addComponent(this.slotsBox = new FormContentBox(6, 34, this.inventoryForm.getWidth() - 12 - 23, 260 - addedHeightForSearch));
 
-            @Override
-            public void onSlotClicked(int slotIndex, InputEvent event) {
-                ContainerSlot slot = container.getSlot(slotIndex);
-                if (slot.getItem() != null && slot.getItem().item != null) {
-                    GameWindow window = WindowManager.getWindow();
-                    if(window.isKeyDown(InputID.KEY_LEFT_SHIFT)) {
-                        container.lootSlot.runAndSend(slotIndex);
-                    } else {
-                        if(container.getSlot(0).isClear()) {
-                            container.moveItem.runAndSend(slotIndex, 0);
-                        } else {
-                            if(container.getSlot(container.INVENTORY_START).isClear()) {
-                                container.moveItem.runAndSend(0, container.INVENTORY_START);
-                                addItemSlot.moveItem();
-                            } else {
-                                container.lootSlot.runAndSend(slotIndex);
-                            }
-                        }
-                    }
-                    VaultStorageContainerForm.this.updateFilter();
-                }
-            }
-
-        });
-
-        this.labelSlots = this.inventoryForm.addComponent(new FormLocalLabel(new StaticMessage(""), new FontOptions(10), -1, this.inventoryForm.getWidth() - 22 - 60, 34 + 260 - addedHeightForSearch - 8));
-
-        this.searchFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 86, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 106, this.inventoryForm.getHeight() - 20));
+        this.searchFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 86 + 12, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 52, this.inventoryForm.getHeight() - 20));
         this.searchFilter.placeHolder = new LocalMessage("ui", "searchtip");
         this.searchFilter.rightClickToClear = true;
         this.searchFilter.onChange((event) -> this.updateFilter());
-        this.searchModFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 46, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 106, this.inventoryForm.getHeight() - 20));
+
+        this.labelSlots = this.inventoryForm.addComponent(new FormLocalLabel(new StaticMessage(""), new FontOptions(10), 0, searchFilter.getX() + (this.inventoryForm.getWidth() - 52) / 2, searchFilter.getY() - 12));
+
+        this.searchModFilter = this.inventoryForm.addComponent(new FormTextInput(26, this.inventoryForm.getHeight() - 46 + 6, FormInputSize.SIZE_32_TO_40, this.inventoryForm.getWidth() - 52, this.inventoryForm.getHeight() - 20));
         this.searchModFilter.placeHolder = new LocalMessage("ui", "searchmodtip");
         this.searchModFilter.rightClickToClear = true;
         this.searchModFilter.onChange((event) -> this.updateFilter());
+
+        FormBreakLine breakLine = this.inventoryForm.addComponent(new FormBreakLine(FormBreakLine.ALIGN_MID, this.inventoryForm.getWidth() - 10, this.inventoryForm.getHeight() / 2, this.inventoryForm.getHeight() - 20, false));
+        breakLine.color = new Color(0, 0, 0);
 
         this.inventoryForm.setWidth(width + addedWidthForButtonFilters);
 
@@ -304,7 +294,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
 
         });
 
-        this.updateFilter();
+        this.updateFilter(true);
 
         this.makeCurrent(this.inventoryForm);
     }
@@ -319,11 +309,18 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         return true;
     }
 
+
     public void updateFilter() {
+        this.updateFilter(false);
+    }
+
+    public void updateFilter(boolean firstTime) {
         PlayerMob perspective = client.getPlayer();
         ArrayList<ContainerSlot> allSlots = container.getAllSlots();
 
-        labelSlots.setText(allSlots.stream().filter(slot -> !slot.isClear()).count() +  " / " + allSlots.size() +  " slots");
+        if(firstTime) {
+            labelSlots.setText(allSlots.size() + " slots");
+        }
 
         String searchText = this.searchFilter.getText().toLowerCase();
         String searchModText = this.searchModFilter.getText().toLowerCase();
@@ -331,11 +328,11 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         Stream<ContainerSlot> selectedSlots = allSlots.stream().filter((containerSlot) -> {
             InventoryItem inventoryItem = containerSlot.getItem();
             if (inventoryItem == null) {
-                return false;
+                return true;
             }
             Item item = inventoryItem.item;
             if (item == null) {
-                return false;
+                return true;
             }
             LoadedMod mod = ItemRegistry.getItemMod(item.getID());
             if (mod == null) {
@@ -397,7 +394,10 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
             return item.getStringID().toLowerCase().contains(searchText) || item.getDisplayName(item.getDefaultItem(client.getPlayer(), 1)).toLowerCase().contains(searchText);
         });
 
-        this.slots.setSlots(selectedSlots.collect(Collectors.toList()));
+        this.slotsBox.clearComponents();
+        FormFlow flow = new FormFlow(34);
+        this.addSlots(flow, selectedSlots.collect(Collectors.toList()));
+        this.slotsBox.setContentBox(new Rectangle(6, 34, slotsBox.getWidth(), flow.next()));
     }
 
     public static class SlotsFilterButton {
@@ -436,5 +436,19 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         super.draw(tickManager, perspective, renderBox);
     }
 
-}
+    protected void addSlots(FormFlow flow, List<ContainerSlot> itemSlots) {
+        this.slots = new FormContainerSlot[itemSlots.size()];
+        int currentY = flow.next();
 
+        for (int i = 0; i < itemSlots.size(); i++) {
+            ContainerSlot containerSlot = itemSlots.get(i);
+
+            int x = i % 12;
+            if (x == 0) {
+                currentY = flow.next(40);
+            }
+
+            this.slots[i] = this.slotsBox.addComponent(new FormContainerSlot(this.client, this.container, containerSlot.getContainerIndex(), 28 + x * 40, currentY));
+        }
+    }
+}

@@ -239,7 +239,6 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
             this.upgradeButton.setParsers(TypeParsers.ItemIcon(12));
             this.upgradeButton.onClicked((e) -> {
                 container.upgradeUltraChest.runAndSend();
-                this.updateFilter();
             });
         }
 
@@ -318,8 +317,11 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
         PlayerMob perspective = client.getPlayer();
         ArrayList<ContainerSlot> allSlots = container.getAllSlots();
 
+
         if(firstTime) {
             labelSlots.setText(allSlots.size() + " slots");
+        } else {
+            container.sortButton.runAndSend();
         }
 
         String searchText = this.searchFilter.getText().toLowerCase();
@@ -448,7 +450,7 @@ public class VaultStorageContainerForm extends ContainerFormSwitcher<VaultStorag
                 currentY = flow.next(40);
             }
 
-            this.slots[i] = this.slotsBox.addComponent(new FormContainerSlot(this.client, this.container, containerSlot.getContainerIndex(), 28 + x * 40, currentY));
+            this.slots[i] = this.slotsBox.addComponent(new FormContainerVaultSlot(this.client, this.container, containerSlot.getContainerIndex(), 28 + x * 40, currentY));
         }
     }
 }
